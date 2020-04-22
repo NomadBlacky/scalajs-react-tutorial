@@ -1,6 +1,3 @@
-addSbtPlugin("org.scalameta"     % "sbt-scalafmt"              % "2.0.6")
-addSbtPlugin("org.xerial.sbt"    % "sbt-sonatype"              % "3.8")
-addSbtPlugin("com.jsuereth"      % "sbt-pgp"                   % "2.0.1")
-addSbtPlugin("com.github.gseitz" % "sbt-release"               % "1.0.13")
-addSbtPlugin("org.scala-js"      % "sbt-scalajs"               % "0.6.32")
-addSbtPlugin("ch.epfl.scala"     % "sbt-scalajs-bundler-sjs06" % "0.17.0")
+addSbtPlugin("org.scala-js" % "sbt-scalajs" % "0.6.26")
+
+addSbtPlugin("ch.epfl.scala" % "sbt-scalajs-bundler" % "0.14.0")
