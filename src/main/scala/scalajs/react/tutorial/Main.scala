@@ -1,14 +1,11 @@
 package scalajs.react.tutorial
 
-import scala.scalajs.js
-import scala.scalajs.js.annotation.{JSExportTopLevel, JSImport}
-import scala.scalajs.LinkingInfo
-
-import slinky.core._
-import slinky.web.ReactDOM
-import slinky.hot
-
 import org.scalajs.dom
+import slinky.hot
+import slinky.web.ReactDOM
+
+import scala.scalajs.{js, LinkingInfo}
+import scala.scalajs.js.annotation.{JSExportTopLevel, JSImport}
 
 @JSImport("resources/index.css", JSImport.Default)
 @js.native

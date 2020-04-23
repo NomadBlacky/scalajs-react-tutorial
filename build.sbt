@@ -25,7 +25,6 @@ libraryDependencies ++= Seq(
   "org.scalatest" %%% "scalatest"  % "3.1.1" % Test
 )
 
-scalacOptions += "-P:scalajs:sjsDefinedByDefault"
 addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
 
 version in webpack := "4.29.6"
