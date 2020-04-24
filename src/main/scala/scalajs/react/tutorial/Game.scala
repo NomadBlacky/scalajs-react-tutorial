@@ -8,24 +8,28 @@ import slinky.web.html._
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
-@react class Square extends Component {
-  case class Props(value: Int)
-  case class State(value: Option[String])
-
-  def initialState: State = State(None)
+@react class Square extends StatelessComponent {
+  case class Props(value: Option[String], onClick: () => Unit)
 
   def render(): ReactElement = {
     button(
       className := "square",
-      onClick := (_ => setState(State(Some("X"))))
-    )(state.value)
+      onClick := (_ => props.onClick())
+    )(props.value)
   }
 }
 
-@react class Board extends StatelessComponent {
+@react class Board extends Component {
   type Props = Unit
+  case class State(squares: Vector[Option[String]])
 
-  def renderSquare(i: Int): ReactElement = Square()
+  def initialState: State = State(Vector.fill(9)(None))
+
+  def renderSquare(i: Int): ReactElement =
+    Square(
+      state.squares(i),
+      () => setState(state.copy(squares = state.squares.updated(i, Some("X"))))
+    )
 
   def render(): ReactElement = {
     val status = "Next player: X"
