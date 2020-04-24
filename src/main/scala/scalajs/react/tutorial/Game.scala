@@ -8,14 +8,10 @@ import slinky.web.html._
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
-@react class Square extends StatelessComponent {
+@react object Square {
   case class Props(value: Option[String], onClick: () => Unit)
-
-  def render(): ReactElement = {
-    button(
-      className := "square",
-      onClick := (_ => props.onClick())
-    )(props.value)
+  val component = FunctionalComponent[Props] { props =>
+    button(className := "square", onClick := props.onClick)(props.value)
   }
 }
 
