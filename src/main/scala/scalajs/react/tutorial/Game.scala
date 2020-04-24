@@ -9,10 +9,10 @@ import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
 @react class Square extends StatelessComponent {
-  type Props = Unit
+  case class Props(value: Int)
 
   def render(): ReactElement = {
-    button(className := "square")( /* TODO */ )
+    button(className := "square")(props.value)
   }
 }
 
