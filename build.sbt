@@ -11,12 +11,12 @@ npmDependencies in Compile ++= Seq(
 )
 
 npmDevDependencies in Compile ++= Seq(
-  "file-loader"         -> "3.0.1",
-  "style-loader"        -> "0.23.1",
-  "css-loader"          -> "2.1.1",
-  "html-webpack-plugin" -> "3.2.0",
-  "copy-webpack-plugin" -> "5.0.2",
-  "webpack-merge"       -> "4.2.1"
+  "file-loader"         -> "6.0.0",
+  "style-loader"        -> "1.2.0",
+  "css-loader"          -> "3.5.3",
+  "html-webpack-plugin" -> "4.2.0",
+  "copy-webpack-plugin" -> "5.1.1",
+  "webpack-merge"       -> "4.2.2"
 )
 
 libraryDependencies ++= Seq(
@@ -27,7 +27,7 @@ libraryDependencies ++= Seq(
 
 scalacOptions in Compile += "-Ymacro-annotations"
 
-version in webpack := "4.29.6"
+version in webpack := "4.43.0"
 version in startWebpackDevServer := "3.10.3"
 
 webpackResources := baseDirectory.value / "webpack" * "*"
