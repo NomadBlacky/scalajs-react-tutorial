@@ -15,35 +15,13 @@ import scala.scalajs.js.annotation.JSImport
   }
 }
 
-@react class Board extends Component {
-  type Props = Unit
-  case class State(squares: Vector[Option[String]], xIsNext: Boolean)
+@react class Board extends StatelessComponent {
+  case class Props(squares: Vector[Option[String]], onClick: Int => Unit)
 
-  def initialState: State = State(Vector.fill(9)(None), xIsNext = true)
-
-  def renderSquare(i: Int): ReactElement =
-    Square(
-      state.squares(i),
-      () =>
-        if (Utils.calculateWinner(state.squares).isDefined || state.squares(i).isDefined) ()
-        else
-          setState(
-            state.copy(
-              squares = state.squares.updated(i, if (state.xIsNext) Some("X") else Some("O")),
-              xIsNext = !state.xIsNext
-            )
-          )
-    )
+  def renderSquare(i: Int): ReactElement = Square(props.squares(i), () => props.onClick(i))
 
   def render(): ReactElement = {
-    val winner = Utils.calculateWinner(state.squares)
-    val status = winner match {
-      case Some(winner) => s"Winner: $winner"
-      case None         => s"Next player: ${if (state.xIsNext) "X" else "O"}"
-    }
-
     div()(
-      div(className := "status")(status),
       div(className := "board-row")(
         renderSquare(0),
         renderSquare(1),
@@ -67,19 +45,41 @@ import scala.scalajs.js.annotation.JSImport
 @js.native
 object AppCSS extends js.Object
 
-@react class Game extends StatelessComponent {
+@react class Game extends Component {
   type Props = Unit
+  case class State(history: Vector[Vector[Option[String]]], xIsNext: Boolean)
+
+  def initialState: State = State(Vector(Vector.fill(9)(None)), true)
 
   private val css = AppCSS
 
+  def handleClick(i: Int): Unit = {
+    val current = state.history.last
+    if (Utils.calculateWinner(current).isDefined || current(i).isDefined) ()
+    else
+      setState(
+        state.copy(
+          history = state.history :+ current.updated(i, if (state.xIsNext) Some("X") else Some("O")),
+          xIsNext = !state.xIsNext
+        )
+      )
+  }
+
   def render(): ReactElement = {
+    val current = state.history.last
+    val winner  = Utils.calculateWinner(current)
+    val status = winner match {
+      case Some(winner) => s"Winner: $winner"
+      case None         => s"Next player: ${if (state.xIsNext) "X" else "O"}"
+    }
+
     div(className := "game")(
       div(className := "game-board")(
-        Board()
+        Board(squares = current, onClick = handleClick)
       ),
       div(className := "game-info")(
-        div(), // TODO
-        div()  // TODO
+        div(status),
+        div() // TODO
       )
     )
   }
