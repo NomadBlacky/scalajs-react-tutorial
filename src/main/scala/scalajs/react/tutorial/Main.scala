@@ -4,16 +4,10 @@ import org.scalajs.dom
 import slinky.hot
 import slinky.web.ReactDOM
 
-import scala.scalajs.{js, LinkingInfo}
-import scala.scalajs.js.annotation.{JSExportTopLevel, JSImport}
-
-@JSImport("resources/index.css", JSImport.Default)
-@js.native
-object IndexCSS extends js.Object
+import scala.scalajs.LinkingInfo
+import scala.scalajs.js.annotation.JSExportTopLevel
 
 object Main {
-  val css = IndexCSS
-
   @JSExportTopLevel("main")
   def main(): Unit = {
     if (LinkingInfo.developmentMode) {
