@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
 scalacOptions in Compile += "-Ymacro-annotations"
 
 version in webpack := "4.29.6"
-version in startWebpackDevServer := "3.2.1"
+version in startWebpackDevServer := "3.10.3"
 
 webpackResources := baseDirectory.value / "webpack" * "*"
 
