@@ -25,16 +25,22 @@ import scala.scalajs.js.annotation.JSImport
     Square(
       state.squares(i),
       () =>
-        setState(
-          state.copy(
-            squares = state.squares.updated(i, if (state.xIsNext) Some("X") else Some("O")),
-            xIsNext = !state.xIsNext
+        if (Utils.calculateWinner(state.squares).isDefined || state.squares(i).isDefined) ()
+        else
+          setState(
+            state.copy(
+              squares = state.squares.updated(i, if (state.xIsNext) Some("X") else Some("O")),
+              xIsNext = !state.xIsNext
+            )
           )
-        )
     )
 
   def render(): ReactElement = {
-    val status = s"Next player: ${if (state.xIsNext) "X" else "O"}"
+    val winner = Utils.calculateWinner(state.squares)
+    val status = winner match {
+      case Some(winner) => s"Winner: $winner"
+      case None         => s"Next player: ${if (state.xIsNext) "X" else "O"}"
+    }
 
     div()(
       div(className := "status")(status),
@@ -76,5 +82,33 @@ object AppCSS extends js.Object
         div()  // TODO
       )
     )
+  }
+}
+
+object Utils {
+  def calculateWinner(squares: Vector[Option[String]]): Option[String] = {
+    Seq(
+      (0, 1, 2),
+      (3, 4, 5),
+      (6, 7, 8),
+      (0, 3, 6),
+      (1, 4, 7),
+      (2, 5, 8),
+      (0, 4, 8),
+      (2, 4, 6)
+    ).collectFirst {
+      case line if aligned(line, squares) => squares(line._1)
+    }.flatten
+  }
+
+  private def aligned(line: (Int, Int, Int), squares: Vector[Option[String]]): Boolean = {
+    val (a, b, c) = line
+    val result = for {
+      x <- squares(a)
+      y <- squares(b)
+      z <- squares(c)
+      if x == y && y == z
+    } yield x
+    result.isDefined
   }
 }
