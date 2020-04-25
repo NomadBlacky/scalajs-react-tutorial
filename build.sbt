@@ -5,8 +5,8 @@ name := "scalajs-react-tutorial"
 scalaVersion := "2.13.2"
 
 npmDependencies in Compile ++= Seq(
-  "react"       -> "16.8.6",
-  "react-dom"   -> "16.8.6",
+  "react"       -> "16.13.1",
+  "react-dom"   -> "16.13.1",
   "react-proxy" -> "1.1.8"
 )
 
