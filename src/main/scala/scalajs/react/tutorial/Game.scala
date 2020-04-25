@@ -17,18 +17,24 @@ import scala.scalajs.js.annotation.JSImport
 
 @react class Board extends Component {
   type Props = Unit
-  case class State(squares: Vector[Option[String]])
+  case class State(squares: Vector[Option[String]], xIsNext: Boolean)
 
-  def initialState: State = State(Vector.fill(9)(None))
+  def initialState: State = State(Vector.fill(9)(None), xIsNext = true)
 
   def renderSquare(i: Int): ReactElement =
     Square(
       state.squares(i),
-      () => setState(state.copy(squares = state.squares.updated(i, Some("X"))))
+      () =>
+        setState(
+          state.copy(
+            squares = state.squares.updated(i, if (state.xIsNext) Some("X") else Some("O")),
+            xIsNext = !state.xIsNext
+          )
+        )
     )
 
   def render(): ReactElement = {
-    val status = "Next player: X"
+    val status = s"Next player: ${if (state.xIsNext) "X" else "O"}"
 
     div()(
       div(className := "status")(status),
