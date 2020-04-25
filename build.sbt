@@ -2,7 +2,7 @@ enablePlugins(ScalaJSBundlerPlugin)
 
 name := "scalajs-react-tutorial"
 
-scalaVersion := "2.12.11"
+scalaVersion := "2.13.2"
 
 npmDependencies in Compile ++= Seq(
   "react"       -> "16.8.6",
@@ -25,7 +25,7 @@ libraryDependencies ++= Seq(
   "org.scalatest" %%% "scalatest"  % "3.1.1" % Test
 )
 
-addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
+scalacOptions in Compile += "-Ymacro-annotations"
 
 version in webpack := "4.29.6"
 version in startWebpackDevServer := "3.2.1"
