@@ -8,15 +8,34 @@ import slinky.web.html._
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
 
+sealed abstract class Marker(val value: String) {
+  def isEmpty: Boolean  = this == Marker.Empty
+  def nonEmpty: Boolean = !isEmpty
+  def getNext: Marker
+}
+object Marker {
+  case object Empty extends Marker("") {
+    override def getNext: Marker = throw new UnsupportedOperationException
+  }
+  case object X extends Marker("X") {
+    override def getNext: Marker = O
+  }
+  case object O extends Marker("O") {
+    override def getNext: Marker = X
+  }
+
+  def getNext(step: Int): Marker = if (step % 2 == 0) X else O
+}
+
 @react object Square {
-  case class Props(value: Option[String], onClick: () => Unit)
+  case class Props(marker: Marker, onClick: () => Unit)
   val component = FunctionalComponent[Props] { props =>
-    button(className := "square", onClick := props.onClick)(props.value)
+    button(className := "square", onClick := props.onClick)(props.marker.value)
   }
 }
 
 @react class Board extends StatelessComponent {
-  case class Props(squares: Vector[Option[String]], onClick: Int => Unit)
+  case class Props(squares: Vector[Marker], onClick: Int => Unit)
 
   def renderSquare(i: Int): ReactElement = Square(props.squares(i), () => props.onClick(i))
 
@@ -47,22 +66,22 @@ object AppCSS extends js.Object
 
 @react class Game extends Component {
   type Props = Unit
-  case class State(history: Vector[Vector[Option[String]]], stepNumber: Int, xIsNext: Boolean)
+  case class State(history: Vector[Vector[Marker]], stepNumber: Int, next: Marker)
 
-  def initialState: State = State(Vector(Vector.fill(9)(None)), 0, true)
+  def initialState: State = State(Vector(Vector.fill(9)(Marker.Empty)), 0, Marker.X)
 
   private val css = AppCSS
 
   def handleClick(i: Int): Unit = {
     val history = state.history.slice(0, state.stepNumber + 1)
     val current = history.last
-    if (Utils.calculateWinner(current).isDefined || current(i).isDefined) ()
+    if (Utils.calculateWinner(current).isDefined || current(i).nonEmpty) ()
     else
       setState(
         state.copy(
-          history = history :+ current.updated(i, if (state.xIsNext) Some("X") else Some("O")),
+          history = history :+ current.updated(i, state.next),
           stepNumber = history.length,
-          xIsNext = !state.xIsNext
+          next = state.next.getNext
         )
       )
   }
@@ -70,7 +89,7 @@ object AppCSS extends js.Object
   def jumpTo(step: Int): Unit = setState { s =>
     s.copy(
       stepNumber = step,
-      xIsNext = (step % 2) == 0
+      next = Marker.getNext(step)
     )
   }
 
@@ -79,7 +98,7 @@ object AppCSS extends js.Object
     val winner  = Utils.calculateWinner(current)
     val status = winner match {
       case Some(winner) => s"Winner: $winner"
-      case None         => s"Next player: ${if (state.xIsNext) "X" else "O"}"
+      case None         => s"Next player: ${state.next.value}"
     }
 
     val moves = state.history.zipWithIndex.map {
@@ -103,8 +122,8 @@ object AppCSS extends js.Object
 }
 
 object Utils {
-  def calculateWinner(squares: Vector[Option[String]]): Option[String] = {
-    Seq(
+  def calculateWinner(squares: Vector[Marker]): Option[Marker] = {
+    val lines = Seq(
       (0, 1, 2),
       (3, 4, 5),
       (6, 7, 8),
@@ -113,19 +132,12 @@ object Utils {
       (2, 5, 8),
       (0, 4, 8),
       (2, 4, 6)
-    ).collectFirst {
-      case line if aligned(line, squares) => squares(line._1)
-    }.flatten
-  }
-
-  private def aligned(line: (Int, Int, Int), squares: Vector[Option[String]]): Boolean = {
-    val (a, b, c) = line
+    )
     val result = for {
-      x <- squares(a)
-      y <- squares(b)
-      z <- squares(c)
-      if x == y && y == z
+      (a, b, c) <- lines
+      (x, y, z) = (squares(a), squares(b), squares(c))
+      if x.nonEmpty && x == y && y == z
     } yield x
-    result.isDefined
+    result.headOption
   }
 }
