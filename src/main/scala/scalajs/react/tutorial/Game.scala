@@ -27,6 +27,23 @@ object Marker {
   def getNext(step: Int): Marker = if (step % 2 == 0) X else O
 }
 
+case class Location(index: Int) {
+  require(0 <= index && index <= 8)
+
+  def getX: Int = index % 3 + 1
+  def getY: Int = index / 3 + 1
+}
+
+case class HistoryItem(squares: Vector[Marker], location: Option[Location]) {
+  def description(stepNumber: Int): String = location match {
+    case Some(loc) => s"Go to move #$stepNumber (${loc.getX}, ${loc.getY})"
+    case None      => "Go to game start"
+  }
+}
+object HistoryItem {
+  def apply(squares: Vector[Marker], location: Location): HistoryItem = HistoryItem(squares, Some(location))
+}
+
 @react object Square {
   case class Props(marker: Marker, onClick: () => Unit)
   val component = FunctionalComponent[Props] { props =>
@@ -66,20 +83,24 @@ object AppCSS extends js.Object
 
 @react class Game extends Component {
   type Props = Unit
-  case class State(history: Vector[Vector[Marker]], stepNumber: Int, next: Marker)
+  case class State(history: Vector[HistoryItem], stepNumber: Int, next: Marker)
 
-  def initialState: State = State(Vector(Vector.fill(9)(Marker.Empty)), 0, Marker.X)
+  def initialState: State = State(
+    history = Vector(HistoryItem(Vector.fill(9)(Marker.Empty), None)),
+    stepNumber = 0,
+    next = Marker.X
+  )
 
   private val css = AppCSS
 
   def handleClick(i: Int): Unit = {
     val history = state.history.slice(0, state.stepNumber + 1)
     val current = history.last
-    if (Utils.calculateWinner(current).isDefined || current(i).nonEmpty) ()
+    if (Utils.calculateWinner(current.squares).isDefined || current.squares(i).nonEmpty) ()
     else
       setState(
         state.copy(
-          history = history :+ current.updated(i, state.next),
+          history = history :+ HistoryItem(current.squares.updated(i, state.next), Location(i)),
           stepNumber = history.length,
           next = state.next.getNext
         )
@@ -95,23 +116,24 @@ object AppCSS extends js.Object
 
   def render(): ReactElement = {
     val current = state.history(state.stepNumber)
-    val winner  = Utils.calculateWinner(current)
+    val winner  = Utils.calculateWinner(current.squares)
     val status = winner match {
       case Some(winner) => s"Winner: $winner"
       case None         => s"Next player: ${state.next.value}"
     }
 
     val moves = state.history.zipWithIndex.map {
-      case (step, move) =>
-        val desc = if (move == 0) "Go to game start" else s"Go to move #$move"
-        li(key := move.toString)(
-          button(onClick := (_ => jumpTo(move)))(desc)
+      case (historyItem, stepNumber) =>
+        li(key := stepNumber.toString)(
+          button(onClick := (_ => jumpTo(stepNumber)))(
+            historyItem.description(stepNumber)
+          )
         )
     }
 
     div(className := "game")(
       div(className := "game-board")(
-        Board(squares = current, onClick = handleClick)
+        Board(squares = current.squares, onClick = handleClick)
       ),
       div(className := "game-info")(
         div(status),
