@@ -54,25 +54,16 @@ object HistoryItem {
 @react class Board extends StatelessComponent {
   case class Props(squares: Vector[Marker], onClick: Int => Unit)
 
-  def renderSquare(i: Int): ReactElement = Square(props.squares(i), () => props.onClick(i))
+  def renderSquare(i: Int): ReactElement =
+    Square(props.squares(i), () => props.onClick(i)).withKey(i.toString)
 
   def render(): ReactElement = {
     div()(
-      div(className := "board-row")(
-        renderSquare(0),
-        renderSquare(1),
-        renderSquare(2)
-      ),
-      div(className := "board-row")(
-        renderSquare(3),
-        renderSquare(4),
-        renderSquare(5)
-      ),
-      div(className := "board-row")(
-        renderSquare(6),
-        renderSquare(7),
-        renderSquare(8)
-      )
+      (0 to 2).map { y =>
+        div(className := "board-row", key := y.toString)(
+          (0 to 2).map(x => this.renderSquare(y * 3 + x))
+        )
+      }
     )
   }
 }
