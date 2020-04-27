@@ -68,18 +68,41 @@ object HistoryItem {
   }
 }
 
+sealed abstract class OrderingMode(val value: String, val reversed: Boolean) {
+  def toggle: OrderingMode
+}
+object OrderingMode {
+  case object Asc extends OrderingMode("↓", false) {
+    override def toggle: OrderingMode = Desc
+  }
+  case object Desc extends OrderingMode("↑", true) {
+    override def toggle: OrderingMode = Asc
+  }
+}
+
+@react object Ordering {
+  case class Props(onClick: () => Unit, mode: OrderingMode)
+  val component = FunctionalComponent[Props] { props => button(onClick := props.onClick)(props.mode.value) }
+}
+
 @JSImport("resources/App.css", JSImport.Default)
 @js.native
 object AppCSS extends js.Object
 
 @react class Game extends Component {
   type Props = Unit
-  case class State(history: Vector[HistoryItem], stepNumber: Int, next: Marker)
+  case class State(
+      history: Vector[HistoryItem],
+      stepNumber: Int,
+      next: Marker,
+      orderingMode: OrderingMode
+  )
 
   def initialState: State = State(
     history = Vector(HistoryItem(Vector.fill(9)(Marker.Empty), None)),
     stepNumber = 0,
-    next = Marker.X
+    next = Marker.X,
+    orderingMode = OrderingMode.Asc
   )
 
   private val css = AppCSS
@@ -104,6 +127,8 @@ object AppCSS extends js.Object
       next = Marker.getNext(step)
     )
   }
+
+  def toggleOrdering(): Unit = setState(state.copy(orderingMode = state.orderingMode.toggle))
 
   def render(): ReactElement = {
     val current = state.history(state.stepNumber)
@@ -130,7 +155,12 @@ object AppCSS extends js.Object
       ),
       div(className := "game-info")(
         div(status),
-        div(moves)
+        div()(
+          Ordering(onClick = toggleOrdering, mode = state.orderingMode)
+        ),
+        ol(reversed := state.orderingMode.reversed)(
+          if (state.orderingMode.reversed) moves.reverse else moves
+        )
       )
     )
   }
