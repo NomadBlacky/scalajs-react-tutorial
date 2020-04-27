@@ -102,6 +102,7 @@ sealed abstract class GameResult(val isEnded: Boolean)
 object GameResult {
   case object InGame                                   extends GameResult(false)
   case class Finished(winner: Marker, lines: Seq[Int]) extends GameResult(true)
+  case object Draw                                     extends GameResult(true)
 }
 
 @JSImport("resources/App.css", JSImport.Default)
@@ -153,10 +154,9 @@ object AppCSS extends js.Object
     val current = state.history(state.stepNumber)
     val result  = calculateResult(current.squares)
     val status = result match {
-      case GameResult.InGame =>
-        s"Next player: ${state.next.value}"
-      case GameResult.Finished(winner, _) =>
-        s"Winner: $winner"
+      case GameResult.InGame              => s"Next player: ${state.next.value}"
+      case GameResult.Finished(winner, _) => s"Winner: $winner"
+      case GameResult.Draw                => "Draw"
     }
     val moves = state.history.zipWithIndex.map {
       case (historyItem, stepNumber) =>
@@ -202,8 +202,9 @@ object AppCSS extends js.Object
       if x.nonEmpty && x == y && y == z
     } yield (x, List(a, b, c))
     result match {
-      case list @ (mk, _) :: _ => GameResult.Finished(mk, list.flatMap(_._2))
-      case _                   => GameResult.InGame
+      case list @ (mk, _) :: _             => GameResult.Finished(mk, list.flatMap(_._2))
+      case _ if squares.forall(_.nonEmpty) => GameResult.Draw
+      case _                               => GameResult.InGame
     }
   }
 }
