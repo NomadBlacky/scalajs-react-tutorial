@@ -124,10 +124,12 @@ object AppCSS extends js.Object
 
     val moves = state.history.zipWithIndex.map {
       case (historyItem, stepNumber) =>
+        val fontWeight = if (state.stepNumber == stepNumber) "bold" else "normal"
         li(key := stepNumber.toString)(
-          button(onClick := (_ => jumpTo(stepNumber)))(
-            historyItem.description(stepNumber)
-          )
+          button(
+            onClick := (_ => jumpTo(stepNumber)),
+            style := js.Dynamic.literal(fontWeight = fontWeight)
+          )(historyItem.description(stepNumber))
         )
     }
 
