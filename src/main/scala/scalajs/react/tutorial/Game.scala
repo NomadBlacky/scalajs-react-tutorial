@@ -45,23 +45,36 @@ object HistoryItem {
 }
 
 @react object Square {
-  case class Props(marker: Marker, onClick: () => Unit)
+  case class Props(marker: Marker, onClick: () => Unit, background: String)
   val component = FunctionalComponent[Props] { props =>
-    button(className := "square", onClick := props.onClick)(props.marker.value)
+    button(
+      className := "square",
+      onClick := props.onClick,
+      style := js.Dynamic.literal(background = props.background)
+    )(props.marker.value)
   }
 }
 
 @react class Board extends StatelessComponent {
-  case class Props(squares: Vector[Marker], onClick: Int => Unit)
+  case class Props(squares: Vector[Marker], onClick: Int => Unit, result: GameResult)
 
-  def renderSquare(i: Int): ReactElement =
-    Square(props.squares(i), () => props.onClick(i)).withKey(i.toString)
+  def renderSquare(i: Int, highlight: Boolean): ReactElement = {
+    val bg = if (highlight) "yellow" else "inherit"
+    Square(props.squares(i), () => props.onClick(i), bg).withKey(i.toString)
+  }
 
   def render(): ReactElement = {
     div()(
       (0 to 2).map { y =>
         div(className := "board-row", key := y.toString)(
-          (0 to 2).map(x => this.renderSquare(y * 3 + x))
+          (0 to 2).map { x =>
+            val index = y * 3 + x
+            val highlight = props.result match {
+              case GameResult.Finished(_, lines) => lines.contains(index)
+              case _                             => false
+            }
+            this.renderSquare(index, highlight)
+          }
         )
       }
     )
@@ -83,6 +96,12 @@ object OrderingMode {
 @react object Ordering {
   case class Props(onClick: () => Unit, mode: OrderingMode)
   val component = FunctionalComponent[Props] { props => button(onClick := props.onClick)(props.mode.value) }
+}
+
+sealed abstract class GameResult(val isEnded: Boolean)
+object GameResult {
+  case object InGame                                   extends GameResult(false)
+  case class Finished(winner: Marker, lines: Seq[Int]) extends GameResult(true)
 }
 
 @JSImport("resources/App.css", JSImport.Default)
@@ -110,7 +129,7 @@ object AppCSS extends js.Object
   def handleClick(i: Int): Unit = {
     val history = state.history.slice(0, state.stepNumber + 1)
     val current = history.last
-    if (Utils.calculateWinner(current.squares).isDefined || current.squares(i).nonEmpty) ()
+    if (calculateResult(current.squares).isEnded || current.squares(i).nonEmpty) ()
     else
       setState(
         state.copy(
@@ -132,12 +151,13 @@ object AppCSS extends js.Object
 
   def render(): ReactElement = {
     val current = state.history(state.stepNumber)
-    val winner  = Utils.calculateWinner(current.squares)
-    val status = winner match {
-      case Some(winner) => s"Winner: $winner"
-      case None         => s"Next player: ${state.next.value}"
+    val result  = calculateResult(current.squares)
+    val status = result match {
+      case GameResult.InGame =>
+        s"Next player: ${state.next.value}"
+      case GameResult.Finished(winner, _) =>
+        s"Winner: $winner"
     }
-
     val moves = state.history.zipWithIndex.map {
       case (historyItem, stepNumber) =>
         val fontWeight = if (state.stepNumber == stepNumber) "bold" else "normal"
@@ -151,7 +171,7 @@ object AppCSS extends js.Object
 
     div(className := "game")(
       div(className := "game-board")(
-        Board(squares = current.squares, onClick = handleClick)
+        Board(squares = current.squares, onClick = handleClick, result)
       ),
       div(className := "game-info")(
         div(status),
@@ -164,10 +184,8 @@ object AppCSS extends js.Object
       )
     )
   }
-}
 
-object Utils {
-  def calculateWinner(squares: Vector[Marker]): Option[Marker] = {
+  def calculateResult(squares: Vector[Marker]): GameResult = {
     val lines = Seq(
       (0, 1, 2),
       (3, 4, 5),
@@ -182,7 +200,10 @@ object Utils {
       (a, b, c) <- lines
       (x, y, z) = (squares(a), squares(b), squares(c))
       if x.nonEmpty && x == y && y == z
-    } yield x
-    result.headOption
+    } yield (x, List(a, b, c))
+    result match {
+      case list @ (mk, _) :: _ => GameResult.Finished(mk, list.flatMap(_._2))
+      case _                   => GameResult.InGame
+    }
   }
 }
