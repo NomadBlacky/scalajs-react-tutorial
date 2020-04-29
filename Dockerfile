@@ -1,3 +1,3 @@
-FROM adoptopenjdk/openjdk8:alpine-slim
+FROM adoptopenjdk/openjdk8:latest
 
-RUN apk add curl git openssh npm
+RUN apt-get update && apt-get install --yes curl git openssh-client npm
