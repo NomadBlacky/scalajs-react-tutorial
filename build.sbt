@@ -25,7 +25,12 @@ libraryDependencies ++= Seq(
   "org.scalatest" %%% "scalatest"  % "3.1.1" % Test
 )
 
-scalacOptions in Compile += "-Ymacro-annotations"
+scalacOptions in Compile ++= Seq(
+  "-Ymacro-annotations",
+  "-Xfatal-warnings",
+  "-deprecation",
+  "-unchecked"
+)
 
 version in webpack := "4.43.0"
 version in startWebpackDevServer := "3.10.3"
