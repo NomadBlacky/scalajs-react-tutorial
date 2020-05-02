@@ -169,17 +169,20 @@ object AppCSS extends js.Object
         )
     }
 
-    div(className := "game")(
-      div(className := "game-board")(
-        Board(squares = current.squares, onClick = handleClick, result)
-      ),
-      div(className := "game-info")(
-        div(status),
-        div()(
-          Ordering(onClick = toggleOrdering, mode = state.orderingMode)
+    div(
+      h1("tic-tac-toe"),
+      div(className := "game")(
+        div(className := "game-board")(
+          Board(squares = current.squares, onClick = handleClick, result)
         ),
-        ol(reversed := state.orderingMode.reversed)(
-          if (state.orderingMode.reversed) moves.reverse else moves
+        div(className := "game-info")(
+          div(status),
+          div()(
+            Ordering(onClick = toggleOrdering, mode = state.orderingMode)
+          ),
+          ol(reversed := state.orderingMode.reversed)(
+            if (state.orderingMode.reversed) moves.reverse else moves
+          )
         )
       )
     )
