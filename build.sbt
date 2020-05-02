@@ -1,3 +1,5 @@
+import dorkbox.notify.Notify
+
 enablePlugins(ScalaJSBundlerPlugin)
 
 name := "scalajs-react-tutorial"
@@ -46,6 +48,29 @@ webpackBundlingMode in fastOptJS := BundlingMode.LibraryOnly()
 
 requireJsDomEnv in Test := true
 
-addCommandAlias("dev", ";fastOptJS::startWebpackDevServer;~fastOptJS")
+lazy val fastOptJSWithNotification = taskKey[sbt.Attributed[sbt.File]]("Run fastOptJS and notify compilation result.")
+
+fastOptJSWithNotification := {
+  (fastOptJS in Compile).result.value match {
+    case Value(value) =>
+      Notify
+        .create()
+        .title("fastOptJS is succeeded")
+        .text("Reloading webpack dev server...")
+        .hideAfter(5000)
+        .show()
+      value
+    case Inc(cause) =>
+      Notify
+        .create()
+        .title("fastOptJS is failed!")
+        .text(cause.message.getOrElse(""))
+        .hideAfter(5000)
+        .show()
+      throw cause
+  }
+}
+
+addCommandAlias("dev", ";fastOptJS::startWebpackDevServer;~fastOptJSWithNotification")
 
 addCommandAlias("build", "fullOptJS::webpack")
