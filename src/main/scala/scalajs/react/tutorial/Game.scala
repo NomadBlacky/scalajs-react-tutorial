@@ -4,6 +4,7 @@ import slinky.core._
 import slinky.core.annotations.react
 import slinky.core.facade.ReactElement
 import slinky.web.html._
+import typings.materialUiCore.{components, materialUiCoreStrings}
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
@@ -95,7 +96,9 @@ object OrderingMode {
 
 @react object Ordering {
   case class Props(onClick: () => Unit, mode: OrderingMode)
-  val component = FunctionalComponent[Props] { props => button(onClick := props.onClick)(props.mode.value) }
+  val component = FunctionalComponent[Props] { props =>
+    components.Button.variant(materialUiCoreStrings.outlined).onClick(_ => props.onClick())(props.mode.value)
+  }
 }
 
 sealed abstract class GameResult(val isEnded: Boolean)
@@ -160,13 +163,11 @@ object AppCSS extends js.Object
     }
     val moves = state.history.zipWithIndex.map {
       case (historyItem, stepNumber) =>
-        val fontWeight = if (state.stepNumber == stepNumber) "bold" else "normal"
-        li(key := stepNumber.toString)(
-          button(
-            onClick := (_ => jumpTo(stepNumber)),
-            style := js.Dynamic.literal(fontWeight = fontWeight)
-          )(historyItem.description(stepNumber))
-        )
+        components.ListItem
+          .button(true)
+          .onClick(_ => jumpTo(stepNumber))
+          .selected(state.stepNumber == stepNumber)
+          .apply(historyItem.description(stepNumber))
     }
 
     div(
@@ -180,9 +181,7 @@ object AppCSS extends js.Object
           div()(
             Ordering(onClick = toggleOrdering, mode = state.orderingMode)
           ),
-          ol(reversed := state.orderingMode.reversed)(
-            if (state.orderingMode.reversed) moves.reverse else moves
-          )
+          components.List(if (state.orderingMode.reversed) moves.reverse else moves)
         )
       )
     )
